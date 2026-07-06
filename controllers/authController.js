@@ -172,14 +172,23 @@ const toggleWishlist = async (req, res) => {
   try {
     const { productId } = req.body;
     const user = await User.findById(req.user._id);
-    const index = user.wishlist.indexOf(productId);
-    if (index > -1) {
-      user.wishlist.splice(index, 1);
+    const exists = user.wishlist.includes(productId);
+    
+    let updatedUser;
+    if (exists) {
+      updatedUser = await User.findByIdAndUpdate(
+        req.user._id,
+        { $pull: { wishlist: productId } },
+        { new: true }
+      );
     } else {
-      user.wishlist.push(productId);
+      updatedUser = await User.findByIdAndUpdate(
+        req.user._id,
+        { $addToSet: { wishlist: productId } },
+        { new: true }
+      );
     }
-    await user.save();
-    res.json(user.wishlist);
+    res.json(updatedUser.wishlist);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -217,15 +226,20 @@ const getCart = async (req, res) => {
 const syncCart = async (req, res) => {
   try {
     const { items } = req.body;
-    const user = await User.findById(req.user._id);
-    user.cart = (items || []).map((i) => ({
+    const mappedCart = (items || []).map((i) => ({
       product: i.productId,
       quantity: i.quantity,
       selectedVariant: i.selectedVariant || "",
       customYarnColor: i.customYarnColor || "",
       customText: i.customText || "",
     }));
-    await user.save();
+
+    await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: { cart: mappedCart } },
+      { new: true }
+    );
+
     res.json({ message: "Cart synced successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
