@@ -71,6 +71,22 @@ const orderSchema = new mongoose.Schema(
       type: String,
       default: "", // customer notes, e.g. customization request
     },
+    couponCode: {
+      type: String,
+      default: "",
+    },
+    discountAmount: {
+      type: Number,
+      default: 0,
+    },
+    giftWrap: {
+      type: Boolean,
+      default: false,
+    },
+    giftMessage: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );

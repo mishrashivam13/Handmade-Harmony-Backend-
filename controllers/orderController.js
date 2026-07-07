@@ -16,7 +16,7 @@ const generateOrderNumber = () => {
 // @route   POST /api/orders
 const placeOrder = async (req, res) => {
   try {
-    const { items, customer, paymentMethod, notes } = req.body;
+    const { items, customer, paymentMethod, notes, couponCode, giftWrap, giftMessage } = req.body;
 
     if (!items || items.length === 0) {
       return res.status(400).json({ message: "No order items" });
@@ -58,14 +58,37 @@ const placeOrder = async (req, res) => {
       });
     }
 
+    // Apply Coupon Code discount on item subtotal
+    let discountAmount = 0;
+    if (couponCode) {
+      const cleanCoupon = couponCode.trim().toUpperCase();
+      if (cleanCoupon === "WELCOME10") {
+        discountAmount = Math.round(totalAmount * 0.10);
+      } else if (cleanCoupon === "HARMONY15") {
+        discountAmount = Math.round(totalAmount * 0.15);
+      } else if (cleanCoupon === "CREATION20") {
+        discountAmount = Math.round(totalAmount * 0.20);
+      }
+    }
+
+    // Apply Gift Wrap Fee (+40)
+    let finalAmount = totalAmount - discountAmount;
+    if (giftWrap) {
+      finalAmount += 40;
+    }
+
     const order = await Order.create({
       user: userId,
       orderNumber: generateOrderNumber(),
       items: orderItems,
       customer,
-      totalAmount,
+      totalAmount: finalAmount,
       paymentMethod: paymentMethod || "COD",
       notes: notes || "",
+      couponCode: couponCode || "",
+      discountAmount,
+      giftWrap: !!giftWrap,
+      giftMessage: giftMessage || "",
     });
 
     res.status(201).json(order);
