@@ -88,6 +88,22 @@ const productSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    material: {
+      type: String,
+      default: "",
+    },
+    dimensions: {
+      type: String,
+      default: "",
+    },
+    weight: {
+      type: String,
+      default: "",
+    },
+    careInstructions: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );
